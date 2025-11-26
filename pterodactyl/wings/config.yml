@@ -1,0 +1,38 @@
+# Wings Configuratie voor jouw setup
+debug: false
+
+panel:
+  # IP en poort waarop Wings luistert
+  listen: 0.0.0.0:8081   # Gebruik een andere poort dan Panel zelf
+  ssl:
+    enabled: false
+
+  # Verbinding met het Panel
+  remote: http://ptero-panel:80   # Panel container hostname en poort
+  token: ptla_v56VwLkk7xHLlZuTm1tQwmQbNXfUUomAY5ggmNgEfPS   # Panel -> Nodes -> Create New Token
+  remote_upload_size: 100          # Max upload size in MB
+  remote_upload_timeout: 300       # Timeout in seconden
+  allowed_origins: ["http://16.171.174.237:8080"]  # Panel URL
+
+database:
+  host: ptero-mariadb
+  port: 3306
+  database: panel
+  username: pterodactyl
+  password: strongpassword
+
+system:
+  data: /var/lib/pterodactyl/volumes
+  sftp:
+    bind_port: 2022
+  username: pterodactyl
+  timezone: Europe/Amsterdam
+  backup_disks: []
+  backup_retention: 7
+  websocket:
+    enabled: true
+    bind_address: 0.0.0.0
+    bind_port: 8082   # Voor WebSocket (ander dan panel/wings port)
+    ssl:
+      enabled: false
+
