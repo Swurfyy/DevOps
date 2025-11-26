@@ -7,6 +7,26 @@ export default createGlobalStyle`
         letter-spacing: 0.015em;
     }
 
+    body.auth-thomas-more {
+        ${tw`text-white`};
+        background: radial-gradient(circle at top, rgba(0, 169, 183, 0.45), transparent 55%),
+            radial-gradient(circle at 20% 20%, rgba(241, 90, 34, 0.35), transparent 40%),
+            #041a24;
+        min-height: 100vh;
+    }
+
+    body.auth-thomas-more #app {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 1rem;
+    }
+
+    body.auth-thomas-more #app > div {
+        width: 100%;
+    }
+
     h1, h2, h3, h4, h5, h6 {
         ${tw`font-medium tracking-normal font-header`};
     }

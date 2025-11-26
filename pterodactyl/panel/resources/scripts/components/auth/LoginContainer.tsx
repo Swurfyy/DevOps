@@ -10,11 +10,37 @@ import tw from 'twin.macro';
 import Button from '@/components/elements/Button';
 import Reaptcha from 'reaptcha';
 import useFlash from '@/plugins/useFlash';
+import styled from 'styled-components/macro';
 
 interface Values {
     username: string;
     password: string;
 }
+
+const BRAND_ORANGE = '#f15a22';
+const BRAND_TEAL = '#00a9b7';
+
+const SubmitButton = styled(Button)`
+    ${tw`border-0 font-semibold rounded-full uppercase tracking-wide`};
+    background-image: linear-gradient(120deg, ${BRAND_ORANGE}, #ff8340);
+    color: #ffffff;
+    box-shadow: 0 18px 35px rgba(241, 90, 34, 0.35);
+    transition: transform 150ms ease, box-shadow 150ms ease;
+
+    &:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 22px 40px rgba(241, 90, 34, 0.45);
+    }
+`;
+
+const ForgotPasswordLink = styled(Link)`
+    ${tw`text-xs tracking-wide no-underline uppercase transition-colors duration-150`};
+    color: ${BRAND_TEAL};
+
+    &:hover {
+        color: ${BRAND_ORANGE};
+    }
+`;
 
 const LoginContainer = ({ history }: RouteComponentProps) => {
     const ref = useRef<Reaptcha>(null);
@@ -80,9 +106,9 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
                         <Field light type={'password'} label={'Password'} name={'password'} disabled={isSubmitting} />
                     </div>
                     <div css={tw`mt-6`}>
-                        <Button type={'submit'} size={'xlarge'} isLoading={isSubmitting} disabled={isSubmitting}>
+                        <SubmitButton type={'submit'} size={'xlarge'} isLoading={isSubmitting} disabled={isSubmitting}>
                             Login
-                        </Button>
+                        </SubmitButton>
                     </div>
                     {recaptchaEnabled && (
                         <Reaptcha
@@ -100,12 +126,7 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
                         />
                     )}
                     <div css={tw`mt-6 text-center`}>
-                        <Link
-                            to={'/auth/password'}
-                            css={tw`text-xs text-neutral-500 tracking-wide no-underline uppercase hover:text-neutral-600`}
-                        >
-                            Forgot password?
-                        </Link>
+                        <ForgotPasswordLink to={'/auth/password'}>Forgot password?</ForgotPasswordLink>
                     </div>
                 </LoginFormContainer>
             )}
