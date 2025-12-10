@@ -9,10 +9,12 @@ export default createGlobalStyle`
 
     body.auth-thomas-more {
         ${tw`text-white`};
-        background: radial-gradient(circle at top, rgba(0, 169, 183, 0.45), transparent 55%),
-            radial-gradient(circle at 20% 20%, rgba(241, 90, 34, 0.35), transparent 40%),
-            #041a24;
+        background: radial-gradient(circle at 20% 18%, rgba(124, 58, 237, 0.26), transparent 30%),
+            radial-gradient(circle at 82% 12%, rgba(56, 189, 248, 0.22), transparent 28%),
+            radial-gradient(circle at 68% 62%, rgba(14, 165, 233, 0.12), transparent 30%),
+            linear-gradient(145deg, #070a16 0%, #0e1630 42%, #0c1229 100%);
         min-height: 100vh;
+        background-attachment: fixed;
     }
 
     body.auth-thomas-more #app {

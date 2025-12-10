@@ -17,19 +17,19 @@ interface Values {
     password: string;
 }
 
-const BRAND_ORANGE = '#f15a22';
-const BRAND_TEAL = '#00a9b7';
+const BRAND_ORANGE = '#8b5cf6';
+const BRAND_TEAL = '#22d3ee';
 
 const SubmitButton = styled(Button)`
     ${tw`border-0 font-semibold rounded-full uppercase tracking-wide`};
-    background-image: linear-gradient(120deg, ${BRAND_ORANGE}, #ff8340);
-    color: #ffffff;
-    box-shadow: 0 18px 35px rgba(241, 90, 34, 0.35);
+    background-image: linear-gradient(135deg, ${BRAND_ORANGE}, ${BRAND_TEAL});
+    color: #0b1024;
+    box-shadow: 0 18px 35px rgba(139, 92, 246, 0.35);
     transition: transform 150ms ease, box-shadow 150ms ease;
 
     &:hover:not(:disabled) {
         transform: translateY(-1px);
-        box-shadow: 0 22px 40px rgba(241, 90, 34, 0.45);
+        box-shadow: 0 22px 40px rgba(34, 211, 238, 0.35);
     }
 `;
 
@@ -100,10 +100,10 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
             })}
         >
             {({ isSubmitting, setSubmitting, submitForm }) => (
-                <LoginFormContainer title={'Login to Continue'} css={tw`w-full flex`}>
-                    <Field light type={'text'} label={'Username or Email'} name={'username'} disabled={isSubmitting} />
+                <LoginFormContainer title={'Log in om door te gaan'} css={tw`w-full flex`}>
+                    <Field type={'text'} label={'Username or Email'} name={'username'} disabled={isSubmitting} />
                     <div css={tw`mt-6`}>
-                        <Field light type={'password'} label={'Password'} name={'password'} disabled={isSubmitting} />
+                        <Field type={'password'} label={'Password'} name={'password'} disabled={isSubmitting} />
                     </div>
                     <div css={tw`mt-6`}>
                         <SubmitButton type={'submit'} size={'xlarge'} isLoading={isSubmitting} disabled={isSubmitting}>
