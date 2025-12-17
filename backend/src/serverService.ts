@@ -4,8 +4,6 @@ import { gameServerRepository, userRepository } from "./repositories";
 import { pterodactylService } from "./pterodactylService";
 
 export const orderServerSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
   name: z.string().min(3),
   game: z.string().min(2),
   ramMb: z.number().int().min(512),
@@ -37,10 +35,10 @@ export async function loginUser(email: string, password: string) {
   return user;
 }
 
-export async function orderServer(input: OrderServerInput) {
-  let user = await userRepository.findByEmail(input.email);
+export async function orderServer(input: OrderServerInput, userId: string) {
+  const user = await userRepository.findById(userId);
   if (!user) {
-    user = await registerUser(input.email, input.password);
+    throw new Error("User not found");
   }
 
   const pteroUser = await pterodactylService.ensureUserForExternalId({
@@ -51,7 +49,7 @@ export async function orderServer(input: OrderServerInput) {
   const pteroServer = await pterodactylService.createServer({
     name: input.name,
     userId: pteroUser.id,
-    description: `${input.game} server for ${input.email}`,
+    description: `${input.game} server for ${user.email}`,
     ramMb: input.ramMb,
     diskMb: input.diskMb,
     cpuLimit: input.cpuLimit,

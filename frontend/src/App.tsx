@@ -1,7 +1,33 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
+import { getToken, setToken, removeToken, getUser, setUser, isAuthenticated, User } from "./auth";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
+// Use environment variable or default to localhost for development
+// In production, this should be set to the backend URL (e.g., http://panel.eclipsemc.be:4000)
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 
+  (window.location.hostname === "panel.eclipsemc.be" 
+    ? "http://panel.eclipsemc.be:4000" 
+    : "http://localhost:4000");
+
+// Configure axios to include token in requests
+axios.interceptors.request.use((config) => {
+  const token = getToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      removeToken();
+      window.location.reload();
+    }
+    return Promise.reject(error);
+  }
+);
 
 type View = "auth" | "dashboard" | "order";
 type AuthView = "login" | "register";
@@ -17,10 +43,11 @@ interface Server {
 }
 
 export function App() {
-  const [view, setView] = useState<View>("auth");
+  const [view, setView] = useState<View>(isAuthenticated() ? "dashboard" : "auth");
   const [authView, setAuthView] = useState<AuthView>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [user, setUserState] = useState<User | null>(getUser());
   const [servers, setServers] = useState<Server[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,11 +60,20 @@ export function App() {
     cpuLimit: 100,
   });
 
+  useEffect(() => {
+    if (isAuthenticated()) {
+      fetchServers();
+    }
+  }, []);
+
   const handleRegister = async () => {
     setError(null);
     setIsLoading(true);
     try {
-      await axios.post(`${API_BASE_URL}/auth/register`, { email, password });
+      const res = await axios.post(`${API_BASE_URL}/auth/register`, { email, password });
+      setToken(res.data.token);
+      setUser(res.data.user);
+      setUserState(res.data.user);
       setView("dashboard");
       await fetchServers();
     } catch (err: any) {
@@ -51,7 +87,10 @@ export function App() {
     setError(null);
     setIsLoading(true);
     try {
-      await axios.post(`${API_BASE_URL}/auth/login`, { email, password });
+      const res = await axios.post(`${API_BASE_URL}/auth/login`, { email, password });
+      setToken(res.data.token);
+      setUser(res.data.user);
+      setUserState(res.data.user);
       setView("dashboard");
       await fetchServers();
     } catch (err: any) {
@@ -61,19 +100,26 @@ export function App() {
     }
   };
 
+  const handleLogout = () => {
+    removeToken();
+    setUserState(null);
+    setView("auth");
+    setServers([]);
+  };
+
   const fetchServers = async () => {
-    if (!email) return;
+    if (!isAuthenticated()) return;
     setError(null);
+    setIsLoading(true);
     try {
       const res = await axios.get<{ servers: Server[] }>(
-        `${API_BASE_URL}/servers`,
-        {
-          params: { email },
-        }
+        `${API_BASE_URL}/servers`
       );
       setServers(res.data.servers);
     } catch (err: any) {
       setError(err.response?.data?.error ?? "Failed to load servers");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -82,8 +128,6 @@ export function App() {
     setIsLoading(true);
     try {
       await axios.post(`${API_BASE_URL}/servers/order`, {
-        email,
-        password,
         ...orderForm,
       });
       setView("dashboard");
@@ -101,8 +145,10 @@ export function App() {
         <div className="logo">DevOps Hosting</div>
         {view !== "auth" && (
           <nav className="nav-links">
+            {user && <span className="user-email">{user.email}</span>}
             <button onClick={() => setView("dashboard")}>Dashboard</button>
             <button onClick={() => setView("order")}>New Server</button>
+            <button onClick={handleLogout} className="logout-btn">Logout</button>
           </nav>
         )}
       </header>
@@ -137,6 +183,12 @@ export function App() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
+                  disabled={isLoading}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !isLoading) {
+                      authView === "login" ? handleLogin() : handleRegister();
+                    }
+                  }}
                 />
               </label>
               <label>
@@ -146,16 +198,34 @@ export function App() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Min. 6 characters"
+                  disabled={isLoading}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !isLoading) {
+                      authView === "login" ? handleLogin() : handleRegister();
+                    }
+                  }}
                 />
               </label>
 
               {authView === "login" ? (
-                <button onClick={handleLogin} disabled={isLoading}>
-                  {isLoading ? "Signing in..." : "Login"}
+                <button onClick={handleLogin} disabled={isLoading || !email || !password}>
+                  {isLoading ? (
+                    <>
+                      <span className="button-spinner"></span> Signing in...
+                    </>
+                  ) : (
+                    "Login"
+                  )}
                 </button>
               ) : (
-                <button onClick={handleRegister} disabled={isLoading}>
-                  {isLoading ? "Creating account..." : "Create account"}
+                <button onClick={handleRegister} disabled={isLoading || !email || !password}>
+                  {isLoading ? (
+                    <>
+                      <span className="button-spinner"></span> Creating account...
+                    </>
+                  ) : (
+                    "Create account"
+                  )}
                 </button>
               )}
 
@@ -167,24 +237,36 @@ export function App() {
         {view === "dashboard" && (
           <section className="card">
             <h1>Your DevOps Hosting servers</h1>
-            <button onClick={fetchServers}>Refresh</button>
-            {servers.length === 0 && (
-              <p>You have no servers yet. Click “New Server” to order one.</p>
-            )}
-            <div className="server-list">
-              {servers.map((s) => (
-                <div key={s.id} className="server-item">
-                  <h2>{s.name}</h2>
-                  <p>{s.game}</p>
-                  <p>
-                    {s.ramMb} MB RAM · {s.diskMb} MB disk · {s.cpuLimit}% CPU
-                  </p>
-                  <span className={`badge badge-${s.status}`}>
-                    {s.status.toUpperCase()}
-                  </span>
-                </div>
-              ))}
+            <div className="dashboard-header">
+              <button onClick={fetchServers} disabled={isLoading}>
+                {isLoading ? "Refreshing..." : "Refresh"}
+              </button>
             </div>
+            {isLoading && servers.length === 0 ? (
+              <div className="loading-state">
+                <div className="spinner"></div>
+                <p>Loading your servers...</p>
+              </div>
+            ) : servers.length === 0 ? (
+              <div className="empty-state">
+                <p>You have no servers yet. Click "New Server" to order one.</p>
+              </div>
+            ) : (
+              <div className="server-list">
+                {servers.map((s) => (
+                  <div key={s.id} className="server-item">
+                    <h2>{s.name}</h2>
+                    <p>{s.game}</p>
+                    <p>
+                      {s.ramMb} MB RAM · {s.diskMb} MB disk · {s.cpuLimit}% CPU
+                    </p>
+                    <span className={`badge badge-${s.status}`}>
+                      {s.status.toUpperCase()}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
             {error && <p className="error">{error}</p>}
           </section>
         )}

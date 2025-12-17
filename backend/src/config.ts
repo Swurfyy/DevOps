@@ -6,6 +6,7 @@ export interface AppConfig {
   env: string;
   port: number;
   databaseUrl: string;
+  jwtSecret: string;
   pterodactyl: {
     baseUrl: string;
     apiKey: string;
@@ -32,6 +33,7 @@ export const config: AppConfig = {
   databaseUrl:
     process.env.DATABASE_URL ||
     "postgresql://devops_hosting:devops_hosting@db:5432/devops_hosting",
+  jwtSecret: process.env.JWT_SECRET || "dev-secret-change-in-production",
   pterodactyl: {
     baseUrl: process.env.PTERO_BASE_URL || "http://localhost",
     apiKey: process.env.PTERO_API_KEY || "",
