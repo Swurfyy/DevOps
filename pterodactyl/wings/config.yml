@@ -12,7 +12,7 @@ panel:
   token: ptla_v56VwLkk7xHLlZuTm1tQwmQbNXfUUomAY5ggmNgEfPS   # Panel -> Nodes -> Create New Token
   remote_upload_size: 100          # Max upload size in MB
   remote_upload_timeout: 300       # Timeout in seconden
-  allowed_origins: ["http://16.171.174.237:8080"]  # Panel URL
+  allowed_origins: ["http://13.62.197.143:8080"]  # Panel URL
 
 database:
   host: ptero-mariadb
