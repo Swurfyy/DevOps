@@ -31,7 +31,7 @@ export const config: AppConfig = {
   port: Number(process.env.BACKEND_PORT || process.env.PORT || 4000),
   databaseUrl:
     process.env.DATABASE_URL ||
-    "postgresql://game_hosting:password@localhost:5432/game_hosting",
+    "postgresql://devops_hosting:devops_hosting@db:5432/devops_hosting",
   pterodactyl: {
     baseUrl: process.env.PTERO_BASE_URL || "http://localhost",
     apiKey: process.env.PTERO_API_KEY || "",

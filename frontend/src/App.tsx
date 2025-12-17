@@ -3,7 +3,8 @@ import axios from "axios";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
 
-type View = "login" | "dashboard" | "order";
+type View = "auth" | "dashboard" | "order";
+type AuthView = "login" | "register";
 
 interface Server {
   id: string;
@@ -16,7 +17,8 @@ interface Server {
 }
 
 export function App() {
-  const [view, setView] = useState<View>("login");
+  const [view, setView] = useState<View>("auth");
+  const [authView, setAuthView] = useState<AuthView>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [servers, setServers] = useState<Server[]>([]);
@@ -40,6 +42,20 @@ export function App() {
       await fetchServers();
     } catch (err: any) {
       setError(err.response?.data?.error ?? "Registration failed");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleLogin = async () => {
+    setError(null);
+    setIsLoading(true);
+    try {
+      await axios.post(`${API_BASE_URL}/auth/login`, { email, password });
+      setView("dashboard");
+      await fetchServers();
+    } catch (err: any) {
+      setError(err.response?.data?.error ?? "Login failed");
     } finally {
       setIsLoading(false);
     }
@@ -83,7 +99,7 @@ export function App() {
     <div className="app">
       <header className="navbar">
         <div className="logo">DevOps Hosting</div>
-        {view !== "login" && (
+        {view !== "auth" && (
           <nav className="nav-links">
             <button onClick={() => setView("dashboard")}>Dashboard</button>
             <button onClick={() => setView("order")}>New Server</button>
@@ -92,32 +108,59 @@ export function App() {
       </header>
 
       <main className="content">
-        {view === "login" && (
-          <section className="card">
-            <h1>Welcome to DevOps Hosting</h1>
-            <p>Sign up to provision game servers automatically on our DevOps-powered platform.</p>
-            <label>
-              Email
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-              />
-            </label>
-            <label>
-              Password
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Min. 6 characters"
-              />
-            </label>
-            <button onClick={handleRegister} disabled={isLoading}>
-              {isLoading ? "Creating account..." : "Continue"}
-            </button>
-            {error && <p className="error">{error}</p>}
+        {view === "auth" && (
+          <section className="card card-auth">
+            <div className="card-header">
+              <h1>Welcome to DevOps Hosting</h1>
+              <p>Galactic-grade game server hosting, powered by DevOps.</p>
+            </div>
+            <div className="auth-toggle">
+              <button
+                className={authView === "login" ? "auth-tab active" : "auth-tab"}
+                onClick={() => setAuthView("login")}
+              >
+                Login
+              </button>
+              <button
+                className={authView === "register" ? "auth-tab active" : "auth-tab"}
+                onClick={() => setAuthView("register")}
+              >
+                Register
+              </button>
+            </div>
+
+            <div className="auth-body">
+              <label>
+                Email
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                />
+              </label>
+              <label>
+                Password
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Min. 6 characters"
+                />
+              </label>
+
+              {authView === "login" ? (
+                <button onClick={handleLogin} disabled={isLoading}>
+                  {isLoading ? "Signing in..." : "Login"}
+                </button>
+              ) : (
+                <button onClick={handleRegister} disabled={isLoading}>
+                  {isLoading ? "Creating account..." : "Create account"}
+                </button>
+              )}
+
+              {error && <p className="error">{error}</p>}
+            </div>
           </section>
         )}
 

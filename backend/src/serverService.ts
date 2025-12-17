@@ -1,4 +1,5 @@
 import { z } from "zod";
+import bcrypt from "bcryptjs";
 import { gameServerRepository, userRepository } from "./repositories";
 import { pterodactylService } from "./pterodactylService";
 
@@ -19,9 +20,20 @@ export async function registerUser(email: string, password: string) {
   if (existing) {
     throw new Error("User already exists");
   }
-  // For demo purposes we don't hash passwords heavily; do not use this in production
-  const passwordHash = `plain:${password}`;
+  const passwordHash = await bcrypt.hash(password, 10);
   const user = await userRepository.createUser(email, passwordHash);
+  return user;
+}
+
+export async function loginUser(email: string, password: string) {
+  const user = await userRepository.findByEmail(email);
+  if (!user) {
+    throw new Error("Invalid credentials");
+  }
+  const match = await bcrypt.compare(password, user.passwordHash);
+  if (!match) {
+    throw new Error("Invalid credentials");
+  }
   return user;
 }
 
@@ -69,5 +81,3 @@ export async function listServersForUser(email: string) {
   if (!user) return [];
   return gameServerRepository.listByUser(user.id);
 }
-
-
